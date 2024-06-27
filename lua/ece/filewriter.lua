@@ -1,0 +1,144 @@
+local M = {}
+
+---Read a file into table of lines
+---@param filename string
+---@return table<string>? content nil if file doesn't exist
+local function read_file(filename)
+    local f = io.open(filename, "r")
+    if f == nil then
+        return nil
+    end
+
+    local content = {}
+    if f then
+        for line in f:lines() do
+            table.insert(content, line)
+        end
+        f:close()
+    end
+    return content
+end
+
+---Write table of lines to file
+---@param filename string
+---@param content table<string>
+local function write_file(filename, content)
+    local f = io.open(filename, "w")
+
+    if f then
+        for _, line in ipairs(content) do
+            f:write(line, "\n")
+        end
+        f:flush()
+        f:close()
+    end
+end
+
+-- This function is from the neovim source
+--- Parse a single line in an EditorConfig file
+--- @param line string Line
+--- @return string? glob pattern if the line contains a pattern
+--- @return string? key if the line contains a key-value pair
+--- @return string? value if the line contains a key-value pair
+local function parse_line(line)
+    if not line:find('^%s*[^ #;]') then
+        return
+    end
+
+    --- @type string?
+    local glob = (line:match('%b[]') or ''):match('^%s*%[(.*)%]%s*$')
+    if glob then
+        return glob
+    end
+
+    local key, val = line:match('^%s*([^:= ][^:=]-)%s*[:=]%s*(.-)%s*$')
+    if key ~= nil and val ~= nil then
+        return nil, key:lower(), val:lower()
+    end
+end
+
+---Set specified editorconfig option
+---@param content table<string> content of the editorconfig
+---@param section string editorconfig config section
+---@param option options
+---@param value string|number|boolean
+---@return table<string> content updated editorconfig
+local function set_option(content, section, option, value)
+    local in_section = false
+
+    -- HACK: there's probably a better way to guarantee the loop to run once
+    if #content == 0 then
+        table.insert(content, "")
+    end
+
+    for i, line in ipairs(content) do
+        local glob, k, _ = parse_line(line)
+
+        if glob == section then
+            in_section = true
+        elseif k == option and in_section then
+            content[i] = option .. " = " .. value
+            break
+        elseif in_section and glob then
+            table.insert(content, i, option .. " = " .. value)
+            break
+        end
+
+        if i == #content then
+            if in_section then
+                table.insert(content, option .. " = " .. value)
+            else
+                table.insert(content, "")
+                table.insert(content, "[" .. section .. "]")
+                table.insert(content, option .. " = " .. value)
+            end
+            break
+        end
+    end
+
+    return content
+end
+
+M.dump_config = function(filepath, glob)
+    local config = read_file(filepath)
+    if config == nil then
+        config = {}
+    end
+
+    -- indent style
+    if vim.bo.expandtab then
+        config = set_option(config, glob, "indent_style", "space")
+    else
+        config = set_option(config, glob, "indent_style", "tab")
+    end
+
+    -- indent size
+    config = set_option(config, glob, "indent_size", vim.bo.shiftwidth)
+
+    -- tab width
+
+    -- end of line
+    config = set_option(config, glob, "end_of_line", ({
+        dos = "crlf",
+        unix = "lf",
+        mac = "cr",
+    })[vim.bo.fileformat])
+
+    -- charset
+    local enc = vim.bo.fileencoding
+    if enc == "utf-8" then
+        if vim.bo.bomb then
+            config = set_option(config, glob, "charset", "utf-8-bom")
+        else
+            config = set_option(config, glob, "charset", "utf-8")
+        end
+    elseif enc == "utf-16" then
+        config = set_option(config, glob, "charset", "utf-16be")
+    else
+        config = set_option(config, glob, "charset", enc)
+    end
+
+    write_file(filepath, config)
+end
+
+return M
