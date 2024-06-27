@@ -134,7 +134,7 @@ M.dump_config = function(filepath, glob)
         end
     elseif enc == "utf-16" then
         config = set_option(config, glob, "charset", "utf-16be")
-    else
+    elseif enc ~= "" then
         config = set_option(config, glob, "charset", enc)
     end
 

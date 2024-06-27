@@ -40,7 +40,6 @@ M.setup = function()
             local buf_name = vim.api.nvim_buf_get_name(0)
 
             local ext = buf_name:match(".*(%..*)$")
-            print("ext", ext)
 
             fw.dump_config(filepath, "*" .. ext)
         end, {})
