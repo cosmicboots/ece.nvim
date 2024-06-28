@@ -3,6 +3,7 @@ local fw = require("ece.filewriter")
 local function find_project_root()
     return vim.fs.root(0, {
         ".git",
+        ".editorconfig",
     })
 end
 
