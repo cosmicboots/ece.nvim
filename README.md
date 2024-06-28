@@ -10,13 +10,19 @@ Use your favorite plugin manager to install ece.nvim.
 Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
-{ "cosmicboots/ece.nvim" }
+{
+    "cosmicboots/ece.nvim",
+    config = true
+}
 ```
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 ```lua
 use {
     "cosmicboots/ece.nvim",
+    config = function()
+        require("ece").setup()
+    end
 }
 ```
 
