@@ -1,5 +1,11 @@
 local fw = require("ece.filewriter")
 
+local function find_project_root()
+    return vim.fs.root(0, {
+        ".git",
+    })
+end
+
 local M = {}
 
 ---@class CmdCallbackArgs
@@ -18,30 +24,28 @@ local M = {}
 
 ---Setup function
 M.setup = function()
-    vim.api.nvim_create_user_command("ECCreate",
+    vim.api.nvim_create_user_command("ECSaveRoot",
         ---@param opts CmdCallbackArgs
         function(opts)
-            local filepath = ".editorconfig"
+            local filepath = vim.fs.joinpath(find_project_root(), ".editorconfig")
             if opts.args[1] then
                 filepath = opts.args[1]
             end
 
-            fw.dump_config(filepath, "*.txt")
+            fw.create_root(filepath)
         end, {})
 
     vim.api.nvim_create_user_command("ECSaveExt",
         ---@param opts CmdCallbackArgs
         function(opts)
-            local filepath = ".editorconfig"
+            local filepath = vim.fs.joinpath(find_project_root(), ".editorconfig")
             if opts.args[1] then
                 filepath = opts.args[1]
             end
 
-            local buf_name = vim.api.nvim_buf_get_name(0)
+            local ext = vim.fn.expand("%:e")
 
-            local ext = buf_name:match(".*(%..*)$")
-
-            fw.dump_config(filepath, "*" .. ext)
+            fw.dump_config(filepath, "*." .. ext)
         end, {})
 end
 

@@ -59,7 +59,7 @@ end
 
 ---Set specified editorconfig option
 ---@param content table<string> content of the editorconfig
----@param section string editorconfig config section
+---@param section string? editorconfig config section. nil will set option at the root
 ---@param option options
 ---@param value string|number|boolean
 ---@return table<string> content updated editorconfig
@@ -80,7 +80,7 @@ local function set_option(content, section, option, value)
             content[i] = option .. " = " .. value
             break
         elseif in_section and glob then
-            table.insert(content, i, option .. " = " .. value)
+            table.insert(content, i, option .. " = " .. tostring(value))
             break
         end
 
@@ -89,7 +89,9 @@ local function set_option(content, section, option, value)
                 table.insert(content, option .. " = " .. value)
             else
                 table.insert(content, "")
-                table.insert(content, "[" .. section .. "]")
+                if section then
+                    table.insert(content, "[" .. section .. "]")
+                end
                 table.insert(content, option .. " = " .. value)
             end
             break
@@ -137,6 +139,19 @@ M.dump_config = function(filepath, glob)
     elseif enc ~= "" then
         config = set_option(config, glob, "charset", enc)
     end
+
+    write_file(filepath, config)
+end
+
+---Set root option
+---@param filepath string path to editorconfig
+M.create_root = function(filepath)
+    local config = read_file(filepath)
+    if config == nil then
+        config = {}
+    end
+
+    config = set_option(config, nil, "root", true)
 
     write_file(filepath, config)
 end
