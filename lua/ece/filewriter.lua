@@ -67,8 +67,10 @@ local function set_option(content, section, option, value)
     local in_section = false
 
     -- HACK: there's probably a better way to guarantee the loop to run once
+    local file_empty = false
     if #content == 0 then
         table.insert(content, "")
+        file_empty = true
     end
 
     for i, line in ipairs(content) do
@@ -80,22 +82,37 @@ local function set_option(content, section, option, value)
             content[i] = option .. " = " .. value
             break
         elseif in_section and glob then
-            table.insert(content, i, option .. " = " .. tostring(value))
+            for j = i - 1, 1, -1 do
+                if content[j] ~= "" then
+                    table.insert(content, j + 1, option .. " = " .. tostring(value))
+                    break
+                elseif j == 1 then
+                    table.insert(content, j, option .. " = " .. tostring(value))
+                    break
+                end
+            end
             break
         end
 
         if i == #content then
             if in_section then
-                table.insert(content, option .. " = " .. value)
+                table.insert(content, option .. " = " .. tostring(value))
             else
                 table.insert(content, "")
                 if section then
                     table.insert(content, "[" .. section .. "]")
                 end
                 table.insert(content, option .. " = " .. value)
+                if section == nil then
+                    table.insert(content, "")
+                end
             end
             break
         end
+    end
+
+    if file_empty then
+        table.remove(content, 1)
     end
 
     return content
