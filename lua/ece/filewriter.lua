@@ -118,6 +118,8 @@ local function set_option(content, section, option, value)
     return content
 end
 
+M._set_option = set_option
+
 M.dump_config = function(filepath, glob)
     local config = read_file(filepath)
     if config == nil then
