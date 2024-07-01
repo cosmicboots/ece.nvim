@@ -128,18 +128,19 @@ M.dump_config = function(filepath, glob)
 
     -- indent style
     if vim.bo.expandtab then
-        config = set_option(config, glob, "indent_style", "space")
+        set_option(config, glob, "indent_style", "space")
     else
-        config = set_option(config, glob, "indent_style", "tab")
+        set_option(config, glob, "indent_style", "tab")
     end
 
     -- indent size
-    config = set_option(config, glob, "indent_size", vim.bo.shiftwidth)
+    set_option(config, glob, "indent_size", vim.bo.shiftwidth)
 
     -- tab width
+    set_option(config, glob, "tab_width", vim.bo.tabstop)
 
     -- end of line
-    config = set_option(config, glob, "end_of_line", ({
+    set_option(config, glob, "end_of_line", ({
         dos = "crlf",
         unix = "lf",
         mac = "cr",
@@ -149,14 +150,22 @@ M.dump_config = function(filepath, glob)
     local enc = vim.bo.fileencoding
     if enc == "utf-8" then
         if vim.bo.bomb then
-            config = set_option(config, glob, "charset", "utf-8-bom")
+            set_option(config, glob, "charset", "utf-8-bom")
         else
-            config = set_option(config, glob, "charset", "utf-8")
+            set_option(config, glob, "charset", "utf-8")
         end
     elseif enc == "utf-16" then
-        config = set_option(config, glob, "charset", "utf-16be")
+        set_option(config, glob, "charset", "utf-16be")
     elseif enc ~= "" then
-        config = set_option(config, glob, "charset", enc)
+        set_option(config, glob, "charset", enc)
+    end
+
+    -- max line length
+    local tw = vim.bo.textwidth
+    if tw == 0 then
+        set_option(config, glob, "max_line_length", "off")
+    else
+        set_option(config, glob, "max_line_length", tw)
     end
 
     write_file(filepath, config)
@@ -170,7 +179,7 @@ M.create_root = function(filepath)
         config = {}
     end
 
-    config = set_option(config, nil, "root", true)
+    set_option(config, nil, "root", true)
 
     write_file(filepath, config)
 end

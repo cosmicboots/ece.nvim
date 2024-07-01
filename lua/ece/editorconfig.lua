@@ -10,6 +10,7 @@ M.OPTIONS = {
     trim_trailing_whitespace = "trim_trailing_whitespace",
     insert_filal_newline = "insert_filal_newline",
     root = "root",
+    max_line_length = "max_line_length",
 }
 
 return M
