@@ -1,7 +1,8 @@
 # ece.nvim -- The EditorConfig Editor
 
 ece.nvim is a Neovim plugin that provides a way to edit and manage
-`.editorconfig` files using the current Neovim settings.
+[EditorConfig](https://editorconfig.org/) files using the current Neovim
+settings.
 
 ## Installation
 
