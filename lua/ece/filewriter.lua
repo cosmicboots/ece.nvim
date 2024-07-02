@@ -134,7 +134,11 @@ M.dump_config = function(filepath, glob)
     end
 
     -- indent size
-    set_option(config, glob, "indent_size", vim.bo.shiftwidth)
+    if vim.bo.shiftwidth == 0 then
+        set_option(config, glob, "indent_size", "tab")
+    else
+        set_option(config, glob, "indent_size", vim.bo.shiftwidth)
+    end
 
     -- tab width
     set_option(config, glob, "tab_width", vim.bo.tabstop)
